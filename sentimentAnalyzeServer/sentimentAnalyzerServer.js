@@ -45,13 +45,13 @@ app.get("/url/emotion", (req,res) => {
     console.log(urlToAnalyze, " emotion", Date().toLocaleString().replace(",","").replace(/:.. /," "));
     const analyzeParams = 
          {
-             "url": urlToAnalyze,
-             "features": {
-                 "keywords": {
-                                 "emotion": true,
-                                 "limit": 1
-                             }
-             }
+            "url": urlToAnalyze,
+                "features": {
+                    "keywords": {
+                        "emotion": true,
+                        "limit": 1
+                    }
+                }
          }
     const naturalLanguageUnderstanding = getNLUInstance();
     naturalLanguageUnderstanding.analyze(analyzeParams)
@@ -69,13 +69,13 @@ app.get("/url/sentiment", (req,res) => {
     console.log(urlToAnalyze, " sentiment", Date().toLocaleString().replace(",","").replace(/:.. /," "));
     const analyzeParams = 
          {
-             "url": urlToAnalyze,
-             "features": {
-                 "keywords": {
-                                 "sentiment": true,
-                                 "limit": 1
-                             }
-             }
+            "url": urlToAnalyze,
+                "features": {
+                    "keywords": {
+                        "sentiment": true,
+                         "limit": 1
+                    }
+                }
          }
     const naturalLanguageUnderstanding = getNLUInstance();
     naturalLanguageUnderstanding.analyze(analyzeParams)
@@ -90,15 +90,17 @@ app.get("/url/sentiment", (req,res) => {
 //The endpoint for the webserver ending with /text/emotion
 app.get("/text/emotion", (req,res) => {
     let textToAnalyze = req.query.text;
-    console.log(textToAnalyze, " emotion", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+
+    console.log(textToAnalyze.substring(0,20), " EMOTION", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+
     const analyzeParams = 
          {
-             "text": textToAnalyze,
-             "features": {
-                 "keywords": {
-                                 "emotion": true,
-                                 "limit": 1
-                             }
+            "text": textToAnalyze,
+            "features": {
+                "keywords": {
+                    "emotion": true,
+                    "limit": 1
+                }
              }
          }
 
@@ -114,15 +116,17 @@ app.get("/text/emotion", (req,res) => {
 
 app.get("/text/sentiment", (req,res) => {
     let textToAnalyze = req.query.text;
-    console.log(textToAnalyze, " sentiment", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+
+    console.log(textToAnalyze.substring(0,20), " SENTIMENT", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+
     const analyzeParams = 
          {
-             "text": textToAnalyze,
-             "features": {
-                 "keywords": {
-                                 "sentiment": true,
-                                 "limit": 1
-                             }
+            "text": textToAnalyze,
+            "features": {
+                "keywords": {
+                    "sentiment": true,
+                    "limit": 1
+                }
              }
          }
 

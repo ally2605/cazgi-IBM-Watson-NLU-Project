@@ -11,29 +11,40 @@ class App extends React.Component {
   is set to text
   */
   state = {innercomp:<textarea rows="4" cols="50" id="textinput"/>,
-            mode: "text",
-          sentimentOutput:[],
-          sentiment:true
+           mode: "text",
+           sentimentOutput:[],
+           sentiment:true,
+           bttxtclass: "btn btn-info", // inserted to control text and url button color when one is clicked 
+           bturlclass: "btn btn-dark", // inserted to control text and url button color when one is clicked
         }
   
   /*
   This method returns the component based on what the input mode is.
-  If the requested input mode is "text" it returns a textbox with 4 rows.
-  If the requested input mode is "url" it returns a textbox with 1 row.
+  If the requested input mode is "text" it returns a textbox with 4 rows, text button color is blue, url button color is dark
+  If the requested input mode is "url" it returns a textbox with 1 row, text button color is dark, url button color is blue
   */
- 
+
+  cursorPointer = document.body.style.cursor;
+
   renderOutput = (input_mode)=>{
-    let rows = 1
-    let mode = "url"
-    //If the input mode is text make it 4 lines
+    let rows = 1;
+    let mode = "url";
+    let btTxtClass = "btn btn-dark";
+    let btUrlClass = "btn btn-info";
+
+    //If the input mode is text make it 4 lines, changes the button color to set focus
     if(input_mode === "text"){
-      mode = "text"
-      rows = 4
+      mode = "text";
+      rows = 4;
+      btTxtClass = "btn btn-info";
+      btUrlClass = "btn btn-dark";
     }
       this.setState({innercomp:<textarea rows={rows} cols="50" id="textinput"/>,
       mode: mode,
       sentimentOutput:[],
-      sentiment:true
+      sentiment:true,
+      bttxtclass: btTxtClass,
+      bturlclass: btUrlClass
       });
   } 
   
@@ -60,7 +71,6 @@ class App extends React.Component {
   }
 
   sendForEmotionAnalysis = () => {
-
     this.setState({sentiment:false});
     let url = ".";
     let mode = this.state.mode
@@ -71,18 +81,27 @@ class App extends React.Component {
       this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
   })})  ;
   }
+
+  setCursorWait = (btn) => {
+     this.cursorPointer = document.body.style.cursor;
+     document.getElementById(btn).style.cursor = "wait";
+  }
   
+  setCursorNormal = (btn) => {
+    document.getElementById(btn).style.cursor = this.cursorPointer;
+    this.cursorPointer = document.body.style.cursor;
+  }
 
   render() {
     return (  
       <div className="App">
-      <button className="btn btn-info" onClick={()=>{this.renderOutput('text')}}>Text</button>
-        <button className="btn btn-dark"  onClick={()=>{this.renderOutput('url')}}>URL</button>
+      <button className={this.state.bttxtclass} onClick={()=>{this.renderOutput('text')}}>Text</button>
+        <button className={this.state.bturlclass}  onClick={()=>{this.renderOutput('url')}}>URL</button>
         <br/><br/>
         {this.state.innercomp}
         <br/>
-        <button className="btn-primary" onClick={this.sendForSentimentAnalysis}>Analyze Sentiment</button>
-        <button className="btn-primary" onClick={this.sendForEmotionAnalysis}>Analyze Emotion</button>
+        <button id="btSent" className="btn-primary" onClick={this.sendForSentimentAnalysis}>Analyze Sentiment</button>
+        <button id="btEm" className="btn-primary" onClick={this.sendForEmotionAnalysis}>Analyze Emotion</button>
         <br/>
             {this.state.sentimentOutput}
       </div>
