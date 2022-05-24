@@ -82,16 +82,6 @@ class App extends React.Component {
   })})  ;
   }
 
-  setCursorWait = (btn) => {
-     this.cursorPointer = document.body.style.cursor;
-     document.getElementById(btn).style.cursor = "wait";
-  }
-  
-  setCursorNormal = (btn) => {
-    document.getElementById(btn).style.cursor = this.cursorPointer;
-    this.cursorPointer = document.body.style.cursor;
-  }
-
   render() {
     return (  
       <div className="App">
