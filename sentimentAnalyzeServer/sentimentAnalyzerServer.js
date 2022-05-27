@@ -5,6 +5,17 @@ const app = new express();
 folder for all static resources*/
 app.use(express.static('client'));
 
+/********* testes com bibliotecas */
+/* MORGAN  - gera logs automaticos no console para requisicoes HTTP */
+const morgan = require('morgan');
+app.use(morgan("dev"));
+
+/* Winston - gera log arquivo local, funcionalidades definidas em logger.js*/ 
+const logger = require('./logger');
+
+/*********/
+
+
 /*This tells the server to allow cross origin references*/
 const cors_app = require('cors');
 app.use(cors_app());
@@ -43,6 +54,8 @@ app.get("/url/emotion", (req,res) => {
     // //Extract the url passed from the client through the request object
     let urlToAnalyze = req.query.url
     console.log(urlToAnalyze, " emotion", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+    logger.info(urlToAnalyze + "  EMOTION " + Date().toLocaleString().replace(",","").replace(/:.. /," "));
+
     const analyzeParams = 
          {
             "url": urlToAnalyze,
@@ -59,6 +72,7 @@ app.get("/url/emotion", (req,res) => {
            return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
+           logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
            return res.send("Could not do desired operation "+err);
         });
 });
@@ -67,6 +81,7 @@ app.get("/url/emotion", (req,res) => {
 app.get("/url/sentiment", (req,res) => {
     let urlToAnalyze = req.query.url;
     console.log(urlToAnalyze, " sentiment", Date().toLocaleString().replace(",","").replace(/:.. /," "));
+    logger.info((urlToAnalyze + "  SENTIMENT " + Date().toLocaleString().replace(",","").replace(/:.. /," ")));
     const analyzeParams = 
          {
             "url": urlToAnalyze,
@@ -83,7 +98,8 @@ app.get("/url/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-        return res.send("Could not do desired operation "+err);
+            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+            return res.send("Could not do desired operation "+err);
         });
 });
 
@@ -92,7 +108,7 @@ app.get("/text/emotion", (req,res) => {
     let textToAnalyze = req.query.text;
 
     console.log(textToAnalyze.substring(0,20), " EMOTION", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-
+    logger.info(textToAnalyze.substring(0,20) + " EMOTION " + Date().toLocaleString().replace(",","").replace(/:.. /," "))
     const analyzeParams = 
          {
             "text": textToAnalyze,
@@ -110,7 +126,8 @@ app.get("/text/emotion", (req,res) => {
         return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-        return res.send("Could not do desired operation "+err);
+            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+           return res.send("Could not do desired operation "+err);
         });
 });
 
@@ -118,7 +135,7 @@ app.get("/text/sentiment", (req,res) => {
     let textToAnalyze = req.query.text;
 
     console.log(textToAnalyze.substring(0,20), " SENTIMENT", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-
+    logger.info(textToAnalyze.substring(0,20) + " SENTIMENT "+ Date().toLocaleString().replace(",","").replace(/:.. /," "));
     const analyzeParams = 
          {
             "text": textToAnalyze,
@@ -136,11 +153,12 @@ app.get("/text/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-        return res.send("Could not do desired operation "+err);
+            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+           return res.send("Could not do desired operation "+err);
         });
 });
 
 let server = app.listen(8080, () => {
-    console.log('Listening', server.address().port)
+    console.log('Listening', server.address().port);
 })
 
