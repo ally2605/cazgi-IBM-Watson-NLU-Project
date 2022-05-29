@@ -1,9 +1,9 @@
-const { appsignal } = require("./src/appsignal"); // APPsignal - AT THE VERY TOP OF THE ENTRYPOINT OF APP
+const { appsignal } = require("./src/appsignal"); // APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
 
 const express = require('express');
-const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // Appsignal - After require(express) but before any routes and the creation of app
+const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // APPSIGNAL - After require(express) but before any routes and the creation of app
 
-const createError = require("http-errors"); // appsignal
+const createError = require("http-errors"); // APPSIGNAL
 const morgan = require('morgan');
 const logger = require('./src/logger');
 const cors_app = require('cors');
@@ -39,7 +39,7 @@ function getNLUInstance() {
 }
 
 
-app.use(expressMiddleware(appsignal)); // APPsignal - after everything but before any routes
+app.use(expressMiddleware(appsignal)); // APPSIGNAL - after everything but before any routes
 
 //**************** Routes */
 
@@ -162,7 +162,7 @@ app.get("/text/sentiment", (req,res) => {
 });
 
 
-// appsignal -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
+// APPSIGNAL -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
 app.use(expressErrorHandler(appsignal));
 
 let server = app.listen(8080, () => {
