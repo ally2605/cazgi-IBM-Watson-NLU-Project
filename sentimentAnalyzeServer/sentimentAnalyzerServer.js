@@ -9,6 +9,7 @@ const logger = require('./src/logger');
 const cors_app = require('cors');
 
 const app = new express();
+const tracer = appsignal.tracer();
 
 /*This tells the server to use the client folder for all static resources*/
 app.use(express.static('client'));
@@ -21,6 +22,8 @@ dotenv.config();
 const watson_api_key = process.env.WATSON_API_KEY;
 const watson_api_url = process.env.WATSON_API_URL;
 
+
+/* IBM Watson Natural Language */
 function getNLUInstance() {
     const NaturalLanguageUnderstandingV1 = require('ibm-watson/natural-language-understanding/v1');
     const { IamAuthenticator } = require('ibm-watson/auth');
@@ -35,7 +38,10 @@ function getNLUInstance() {
     return naturalLanguageUnderstanding;
 }
 
-app.use(expressMiddleware(appsignal)); // APPsignal - before any routes
+
+app.use(expressMiddleware(appsignal)); // APPsignal - after everything but before any routes
+
+//**************** Routes */
 
 //The default endpoint for the webserver
 app.get("/",(req,res)=>{
@@ -66,6 +72,7 @@ app.get("/url/emotion", (req,res) => {
         })
         .catch(err => {
            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+           tracer.setError(err);
            return res.send("Could not do desired operation "+err);
         });
 });
@@ -92,6 +99,7 @@ app.get("/url/sentiment", (req,res) => {
         })
         .catch(err => {
             logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+            tracer.setError(err);
             return res.send("Could not do desired operation "+err);
         });
 });
@@ -119,7 +127,8 @@ app.get("/text/emotion", (req,res) => {
         return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+           logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
+           tracer.setError(err);
            return res.send("Could not do desired operation "+err);
         });
 });
@@ -147,7 +156,8 @@ app.get("/text/sentiment", (req,res) => {
         })
         .catch(err => {
             logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
-           return res.send("Could not do desired operation "+err);
+            tracer.setError(err);
+            return res.send("Could not do desired operation "+err);
         });
 });
 
