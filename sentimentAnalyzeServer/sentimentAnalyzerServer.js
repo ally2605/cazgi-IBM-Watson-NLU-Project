@@ -16,7 +16,7 @@ app.use(express.static('client'));
 app.use(morgan("dev"));
 app.use(cors_app());
 
-
+//
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -38,7 +38,6 @@ function getNLUInstance() {
     });
     return naturalLanguageUnderstanding;
 }
-
 
 app.use(expressMiddleware(appsignal)); // APPSIGNAL - after everything but before any routes
 
