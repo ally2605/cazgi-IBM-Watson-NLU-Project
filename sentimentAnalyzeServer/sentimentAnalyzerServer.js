@@ -16,6 +16,7 @@ app.use(express.static('client'));
 app.use(morgan("dev"));
 app.use(cors_app());
 
+
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -165,7 +166,11 @@ app.get("/text/sentiment", (req,res) => {
 // APPSIGNAL -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
 app.use(expressErrorHandler(appsignal));
 
-let server = app.listen(8080, () => {
-    console.log('Listening', server.address().port);
-})
+let server = app.listen(8080, (err) => {
+    if (err) {
+        console.log("Error while starting server");
+    } else {
+       console.log('Listening', server.address().port);
+    }
+});
 
