@@ -1,16 +1,22 @@
 console.log ("Starting server...");
 
-const { appsignal } = require("./src/appsignal"); // APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
-
+const { appsignal } = require("./src/appsignal"); // LOGGING: APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
 const express = require('express');
-const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // APPSIGNAL - After require(express) but before any routes and the creation of app
-
-const cors_app = require('cors');
+const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // LOGGING: APPSIGNAL - After require(express) but before any routes and the creation of app
 const { logWinston, logMorgan, isConsoleLogActive, isWinstonLogActive, isMorganLogActive } = require('./src/logger');
-const node_env = process.env.NODE_ENV;
-
+const { createLog } = require("./src/utils"); // LOGGING: logging module
+const cors_app = require('cors');
 const axios = require("axios");
 
+const dotenv = require('dotenv');
+dotenv.config();
+
+const node_env = process.env.NODE_ENV;
+const watson_api_key = process.env.WATSON_API_KEY;
+const watson_api_url = process.env.WATSON_API_URL;
+const astro_api_url = process.env.ASTRO_API_URL;
+
+/** Application */
 const app = new express();
 
 /* testar APPSIGNAL spans 
@@ -20,26 +26,14 @@ console.log("***>>>", rootSpan);
 
 /*This tells the server to use the client folder for all static resources*/
 app.use(express.static('client'));
-
 app.use(cors_app());
 
-// only logs at console if Console logging is active
+// LOGGING SYSTEM: only logs at console if Console logging is active
 if (isMorganLogActive === true) {
     if (node_env === "development") {
        app.use(logMorgan("dev"));
     }
 }
-
-
-//
-
-const dotenv = require('dotenv');
-const { createLog } = require("./src/utils");
-dotenv.config();
-
-const watson_api_key = process.env.WATSON_API_KEY;
-const watson_api_url = process.env.WATSON_API_URL;
-const astro_api_url = process.env.ASTRO_API_URL;
 
 
 /* IBM Watson Natural Language */
@@ -57,7 +51,7 @@ function getNLUInstance() {
     return naturalLanguageUnderstanding;
 }
 
-app.use(expressMiddleware(appsignal)); // APPSIGNAL - after everything but before any routes
+app.use(expressMiddleware(appsignal)); // LOGGING: APPSIGNAL - after everything but before any routes
 
 //**************** Routes */
 
@@ -66,7 +60,7 @@ app.get("/",(req,res)=>{
     res.render('index.html');
   });
 
-//The endpoint for the webserver ending with /url/emotion
+//ROUTE: /url/emotion
 app.get("/url/emotion", (req,res) => {
     let urlToAnalyze = req.query.url;
     createLog("info", "GET /url/emotion", urlToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
@@ -92,7 +86,7 @@ app.get("/url/emotion", (req,res) => {
         });
 });
 
-//The endpoint for the webserver ending with /url/sentiment
+//ROUTE: /url/sentiment
 app.get("/url/sentiment", (req,res) => {
     let urlToAnalyze = req.query.url;
     createLog("info", "GET /url/sentiment", req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
@@ -117,7 +111,7 @@ app.get("/url/sentiment", (req,res) => {
         });
 });
 
-//The endpoint for the webserver ending with /text/emotion
+//ROUTE: /text/emotion
 app.get("/text/emotion", (req,res) => {
     let textToAnalyze = req.query.text;    
     createLog("info", "GET /text/emotion", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
@@ -144,6 +138,7 @@ app.get("/text/emotion", (req,res) => {
         });
 });
 
+// ROUTE: /text/sentiment 
 app.get("/text/sentiment", (req,res) => {
     let textToAnalyze = req.query.text;    
     createLog("info", "GET /text/sentiment", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
@@ -170,7 +165,7 @@ app.get("/text/sentiment", (req,res) => {
         });
 });
 
-// Astronauts
+// ROUTE: How many astrounauts are in space
 app.use("/astro", (req, res) => {
    const result = axios.get(astro_api_url)
    .then(response => {
@@ -186,6 +181,7 @@ app.use("/astro", (req, res) => {
 // APPSIGNAL -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
 app.use(expressErrorHandler(appsignal));
 
+// start server
 let server = app.listen(8080, (err) => {
     if (err) {
         console.log("Error while starting server");
