@@ -1,27 +1,45 @@
+console.log ("Starting server...");
+
 const { appsignal } = require("./src/appsignal"); // APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
 
 const express = require('express');
 const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // APPSIGNAL - After require(express) but before any routes and the creation of app
 
-const createError = require("http-errors"); // APPSIGNAL
-const morgan = require('morgan');
-const logger = require('./src/logger');
 const cors_app = require('cors');
+const { logWinston, logMorgan, isConsoleLogActive, isWinstonLogActive, isMorganLogActive } = require('./src/logger');
+const node_env = process.env.NODE_ENV;
+
+const axios = require("axios");
 
 const app = new express();
-const tracer = appsignal.tracer();
+
+/* testar APPSIGNAL spans 
+const rootSpan = tracer.rootSpan();
+console.log("***>>>", rootSpan);
+*/
 
 /*This tells the server to use the client folder for all static resources*/
 app.use(express.static('client'));
-app.use(morgan("dev"));
+
 app.use(cors_app());
 
+// only logs at console if Console logging is active
+if (isMorganLogActive === true) {
+    if (node_env === "development") {
+       app.use(logMorgan("dev"));
+    }
+}
+
+
 //
+
 const dotenv = require('dotenv');
+const { createLog } = require("./src/utils");
 dotenv.config();
 
 const watson_api_key = process.env.WATSON_API_KEY;
 const watson_api_url = process.env.WATSON_API_URL;
+const astro_api_url = process.env.ASTRO_API_URL;
 
 
 /* IBM Watson Natural Language */
@@ -50,10 +68,8 @@ app.get("/",(req,res)=>{
 
 //The endpoint for the webserver ending with /url/emotion
 app.get("/url/emotion", (req,res) => {
-    // //Extract the url passed from the client through the request object
-    let urlToAnalyze = req.query.url
-    console.log(urlToAnalyze, " emotion", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-    logger.info(urlToAnalyze + "  EMOTION " + Date().toLocaleString().replace(",","").replace(/:.. /," "));
+    let urlToAnalyze = req.query.url;
+    createLog("info", "GET /url/emotion", urlToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
 
     const analyzeParams = 
          {
@@ -71,17 +87,15 @@ app.get("/url/emotion", (req,res) => {
            return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-           logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
-           tracer.setError(err);
-           return res.send("Could not do desired operation "+err);
+            createLog("error", "GET /url/emotion", urlToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+            return res.send("Could not do desired operation: " + err);
         });
 });
 
 //The endpoint for the webserver ending with /url/sentiment
 app.get("/url/sentiment", (req,res) => {
     let urlToAnalyze = req.query.url;
-    console.log(urlToAnalyze, " sentiment", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-    logger.info((urlToAnalyze + "  SENTIMENT " + Date().toLocaleString().replace(",","").replace(/:.. /," ")));
+    createLog("info", "GET /url/sentiment", req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
     const analyzeParams = 
          {
             "url": urlToAnalyze,
@@ -98,18 +112,16 @@ app.get("/url/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
-            tracer.setError(err);
-            return res.send("Could not do desired operation "+err);
+            createLog("error", "GET /url/sentiment", req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+            return res.send("Could not do desired operation: " + err);  
         });
 });
 
 //The endpoint for the webserver ending with /text/emotion
 app.get("/text/emotion", (req,res) => {
-    let textToAnalyze = req.query.text;
+    let textToAnalyze = req.query.text;    
+    createLog("info", "GET /text/emotion", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
 
-    console.log(textToAnalyze.substring(0,20), " EMOTION", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-    logger.info(textToAnalyze.substring(0,20) + " EMOTION " + Date().toLocaleString().replace(",","").replace(/:.. /," "))
     const analyzeParams = 
          {
             "text": textToAnalyze,
@@ -127,17 +139,15 @@ app.get("/text/emotion", (req,res) => {
         return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-           logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
-           tracer.setError(err);
+           createLog("error", "GET /text/emotion", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
            return res.send("Could not do desired operation "+err);
         });
 });
 
 app.get("/text/sentiment", (req,res) => {
-    let textToAnalyze = req.query.text;
-
-    console.log(textToAnalyze.substring(0,20), " SENTIMENT", Date().toLocaleString().replace(",","").replace(/:.. /," "));
-    logger.info(textToAnalyze.substring(0,20) + " SENTIMENT "+ Date().toLocaleString().replace(",","").replace(/:.. /," "));
+    let textToAnalyze = req.query.text;    
+    createLog("info", "GET /text/sentiment", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    
     const analyzeParams = 
          {
             "text": textToAnalyze,
@@ -155,12 +165,23 @@ app.get("/text/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            logger.error( Date().toLocaleString().replace(",","").replace(/:.. /," ") + err);
-            tracer.setError(err);
+            createLog("error", "GET /text/sentiment", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
             return res.send("Could not do desired operation "+err);
         });
 });
 
+// Astronauts
+app.use("/astro", (req, res) => {
+   const result = axios.get(astro_api_url)
+   .then(response => {
+    createLog("info", "GET /astro", "", Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    return res.send(response.data);
+   })
+   .catch(err => {
+    createLog("error", "GET /astro", "", Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+    return res.send("Could not execute selected operation "+err);
+   })
+});
 
 // APPSIGNAL -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
 app.use(expressErrorHandler(appsignal));
@@ -169,7 +190,7 @@ let server = app.listen(8080, (err) => {
     if (err) {
         console.log("Error while starting server");
     } else {
-       console.log('Listening', server.address().port);
+       console.log('Server is listening at port:', server.address().port);
     }
 });
 

@@ -15,7 +15,7 @@ class App extends React.Component {
            sentimentOutput:[],
            sentiment:true,
            bttxtclass: "btn btn-info", // inserted to control text and url button color when one is clicked 
-           bturlclass: "btn btn-dark", // inserted to control text and url button color when one is clicked
+           bturlclass: "btn btn-dark" 
         }
   
   /*
@@ -48,6 +48,17 @@ class App extends React.Component {
       });
   } 
   
+  sendForAstro = () => {
+    let url = "./astro";
+    fetch (url).then((response)=>{
+      response.json().then((data) => {
+        let output = <div style={{color: 'black', fontSize:20}}>There are currently {data.number} astronauts in space!</div>;
+        console.log(output);
+        this.setState({sentimentOutput:output});
+      })
+    })
+  }
+
   sendForSentimentAnalysis = () => {
     this.setState({sentiment:true});
     let url = ".";
@@ -79,8 +90,9 @@ class App extends React.Component {
     fetch(url).then((response)=>{
       response.json().then((data)=>{
       this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
-  })})  ;
+    })})  ;
   }
+  
 
   render() {
     return (  
@@ -92,7 +104,9 @@ class App extends React.Component {
         <br/>
         <button id="btSent" className="btn-primary" onClick={this.sendForSentimentAnalysis}>Analyze Sentiment</button>
         <button id="btEm" className="btn-primary" onClick={this.sendForEmotionAnalysis}>Analyze Emotion</button>
-        <br/>
+        <br/><br/>
+        <button id="btNasa" className="btn-primary" onClick={this.sendForAstro}>How Many Astronauts</button>
+        <br/><br/>
         {this.state.sentimentOutput}
       </div>
     );
