@@ -4,7 +4,7 @@ const { appsignal } = require("./src/appsignal"); // LOGGING: APPSIGNAL - AT THE
 const express = require('express');
 const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // LOGGING: APPSIGNAL - After require(express) but before any routes and the creation of app
 const { logWinston, logMorgan, isConsoleLogActive, isWinstonLogActive, isMorganLogActive } = require('./src/logger');
-const { createLog } = require("./src/utils"); // LOGGING: logging module
+const { createLog, isValidURL } = require("./src/utils"); // LOGGING: logging module
 const cors_app = require('cors');
 const axios = require("axios");
 
@@ -63,33 +63,34 @@ app.get("/",(req,res)=>{
 //ROUTE: /url/emotion
 app.get("/url/emotion", (req,res) => {
     let urlToAnalyze = req.query.url;
-    createLog("info", "GET /url/emotion", urlToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
 
+   createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
     const analyzeParams = 
-         {
-            "url": urlToAnalyze,
-                "features": {
-                    "keywords": {
-                        "emotion": true,
-                        "limit": 1
-                    }
+        {
+           "url": urlToAnalyze,
+           "features": {
+                "keywords": {
+                "emotion": true,
+                "limit": 1
                 }
-         }
+           }
+       }
     const naturalLanguageUnderstanding = getNLUInstance();
     naturalLanguageUnderstanding.analyze(analyzeParams)
         .then(analysisResults => {
            return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-            createLog("error", "GET /url/emotion", urlToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-            return res.send("Could not do desired operation: " + err);
+            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+            return res.sendStatus(500);
         });
-});
+  });
 
 //ROUTE: /url/sentiment
 app.get("/url/sentiment", (req,res) => {
     let urlToAnalyze = req.query.url;
-    createLog("info", "GET /url/sentiment", req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+
+    createLog("info",req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
     const analyzeParams = 
          {
             "url": urlToAnalyze,
@@ -106,7 +107,7 @@ app.get("/url/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            createLog("error", "GET /url/sentiment", req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
             return res.send("Could not do desired operation: " + err);  
         });
 });
@@ -114,7 +115,7 @@ app.get("/url/sentiment", (req,res) => {
 //ROUTE: /text/emotion
 app.get("/text/emotion", (req,res) => {
     let textToAnalyze = req.query.text;    
-    createLog("info", "GET /text/emotion", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
 
     const analyzeParams = 
          {
@@ -133,7 +134,7 @@ app.get("/text/emotion", (req,res) => {
         return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-           createLog("error", "GET /text/emotion", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+           createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
            return res.send("Could not do desired operation "+err);
         });
 });
@@ -141,7 +142,7 @@ app.get("/text/emotion", (req,res) => {
 // ROUTE: /text/sentiment 
 app.get("/text/sentiment", (req,res) => {
     let textToAnalyze = req.query.text;    
-    createLog("info", "GET /text/sentiment", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
     
     const analyzeParams = 
          {
@@ -160,21 +161,21 @@ app.get("/text/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            createLog("error", "GET /text/sentiment", textToAnalyze, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
             return res.send("Could not do desired operation "+err);
         });
 });
 
 // ROUTE: How many astrounauts are in space
-app.use("/astro", (req, res) => {
+app.get("/astro", (req, res) => {
    const result = axios.get(astro_api_url)
    .then(response => {
-    createLog("info", "GET /astro", "", Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
     return res.send(response.data);
    })
    .catch(err => {
-    createLog("error", "GET /astro", "", Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-    return res.send("Could not execute selected operation "+err);
+    createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
+    return res.sendStatus(500);
    })
 });
 

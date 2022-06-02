@@ -11,16 +11,13 @@ const APPSIGNAL_ACTIVE = toBoolean(process.env.APPSIGNAL_ACTIVE);
 
 const appsignal = new Appsignal({
   active: APPSIGNAL_ACTIVE,
-  name: process.env.APPSIGNAL_APP_NAME, //**APPSIGNAL = nome da aplicacao */
-  pushApiKey: process.env.APPSIGNAL_API_KEY // Note: renamed from `apiKey` in version 2.2.5
+  name: process.env.APPSIGNAL_APP_NAME, //** APPSIGNAL = nome da aplicacao */
+  pushApiKey: process.env.APPSIGNAL_API_KEY, 
+  filterParameters: ["password","pwd","pass"] //** list of pararameters that wont be recorded to appsignal, it shows [FILTERED] instead */
   // logLevel: error, warning, info, debug, trace
 });
 
-let logTracer = null;
-
-if (appsignal.isActive===true) {
-  logTracer = appsignal.tracer();
-}
+const logTracer = appsignal.tracer(); //** Tracer only will be active if appSginal is active */
 
 console.log("Is AppSignal Log Active? ", appsignal.isActive);
 

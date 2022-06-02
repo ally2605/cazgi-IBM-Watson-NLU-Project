@@ -2,6 +2,7 @@ import './bootstrap.min.css';
 import './App.css';
 import EmotionTable from './EmotionTable.js';
 import React from 'react';
+import isValidURL from './utils.js';
 
 class App extends React.Component {
   /*
@@ -55,7 +56,14 @@ class App extends React.Component {
         let output = <div style={{color: 'black', fontSize:20}}>There are currently {data.number} astronauts in space!</div>;
         console.log(output);
         this.setState({sentimentOutput:output});
+      }).catch ( (error) => {
+        console.log("Erro interno", error);
+        alert("Erro ao consultar serviço. Tente novamente.");
       })
+    })
+    .catch ((error) => {
+      console.log("Erro Interno:", error);
+      alert("Erro ao consultar serviço. Tente novamente.");
     })
   }
 
@@ -63,37 +71,59 @@ class App extends React.Component {
     this.setState({sentiment:true});
     let url = ".";
     let mode = this.state.mode
-    url = url+"/" + mode + "/sentiment?"+ mode + "="+document.getElementById("textinput").value;
+    let urlValid = isValidURL(document.getElementById("textinput").value);
 
-    fetch(url).then((response)=>{
+    if ((mode === "url") && (urlValid===false)) {
+      alert("Invalid URL. Please inform a valid URL.");
+    }  
+    else {
+       url = url+"/" + mode + "/sentiment?"+ mode + "="+document.getElementById("textinput").value;
+
+       fetch(url).then((response)=>{
         response.json().then((data)=>{
-        this.setState({sentimentOutput:data.label});
-        let output = data.label;
-        let color = "white"
-        switch(output) {
-          case "positive": color = "green";break;
-          case "neutral": color = "yellow";break;
-          case "negative": color = "red";break;
-          default: color = "black";
-        }
-        output = <div style={{color:color,fontSize:20}}>{output}</div>
-        this.setState({sentimentOutput:output});
-      })});
+           this.setState({sentimentOutput:data.label});
+           let output = data.label;
+           let color = "white"
+           switch(output) {
+             case "positive": color = "green";break;
+             case "neutral": color = "yellow";break;
+             case "negative": color = "red";break;
+             default: color = "black";
+            }
+           output = <div style={{color:color,fontSize:20}}>{output}</div>
+           this.setState({sentimentOutput:output});
+        })
+        .catch( (error) => {
+            alert("Erro ao consultar serviço. Tente novamente.");
+        })
+      });
+    }
   }
 
   sendForEmotionAnalysis = () => {
     this.setState({sentiment:false});
     let url = ".";
     let mode = this.state.mode
-    url = url+"/" + mode + "/emotion?"+ mode + "="+document.getElementById("textinput").value;
 
-    fetch(url).then((response)=>{
-      response.json().then((data)=>{
-      this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
-    })})  ;
+    let urlValid = isValidURL(document.getElementById("textinput").value);
+
+    if ((mode === "url") && (urlValid===false)) {
+      alert("Invalid URL. Please inform a valid URL.");
+    }
+    else {
+       url = url+"/" + mode + "/emotion?"+ mode + "="+document.getElementById("textinput").value;
+
+       fetch(url).then((response)=>{
+         response.json().then((data)=>{
+         this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
+       })
+       .catch( (error) => {
+         alert("Erro ao consultar serviço. Tente novamente.");
+       })
+     });
+    }
   }
   
-
   render() {
     return (  
       <div className="App">

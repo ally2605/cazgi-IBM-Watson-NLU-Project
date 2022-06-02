@@ -30,6 +30,17 @@ function copyObj(obj) {
     return copy;
 }
 
+
+function isValidURL (string) {
+    let url;
+    try {
+        url = new URL(string);
+    }catch (_) {
+        return false;
+    }
+    return true;
+}
+
 /*
   Function createLog: creates a log register depending on what log mode is enabled. It can register errors, 
                       incidents that must be monitored, trace information or debug information. 
@@ -38,17 +49,20 @@ function copyObj(obj) {
               param - parameters used when the error/incident/monitoring occurred
               dateTime - date and time of the error/incident/monitorig
               error - original error that triggered the action; blank when is an info logging
-  To be implemented: ** internal error Code?? 
+  To be implemented: ** internal error Code and correspondence with APIs returning codes?? 
                      ** debug, warning and trace modes
 */
-function createLog (logType, message, param, dateTime, error) {
+function createLog (logType, message, param, query, dateTime, error) {
 
-    let errorMessage = logType + ": " + dateTime + " ";
-    if (param !=="") {
-        errorMessage += param + " ";
-    }
+    let errorMessage = logType + ": " + dateTime;
     if (message !== "") {
-        errorMessage += message + " ";
+        errorMessage += " " + message;
+    }
+    if (param !=="") {
+        errorMessage += " param: " + JSON.stringify(param);
+    }
+    if (query !==""){
+        errorMessage += " query:" + JSON.stringify(query) + " ";
     }
     errorMessage += error;
 
@@ -68,37 +82,11 @@ function createLog (logType, message, param, dateTime, error) {
     }
     /** Appsignal logging mode
      *  If AppSignal is on, all incidents will be logged automatically, except errors that must be 
-     *  logged through tracer.
+     *  logged through tracer. Tracer is created at appsignal.js.
     */
-    if ((appsignal.isActive===true) && (type == "error")){
-        logTracer.setError(errorMessage);
+    if ((appsignal.isActive===true) && (logType == "error")){
+        logTracer.setError(error);
     }
 
 }
-module.exports = {copyObj, createLog};
-
-/* 
-   Function Name: createLog - 
-   Parameters: error: error message returned by application
-               message: aditional text message to better locate error
-               type: (error / info) - indicates the type of log to generate, currently used for winston and appsignal
-
-function createLog (error, message, type, errorDate) {
-
-   let errorMessage = type + " " + error + " " + message;
-   if (isWinstonLogActive===true) {
-       if (type == "error")
-          logWinston.error(errorMessage + " " + errorDate);
-       else // (type === "info")
-          logWinston.info(errorMessage + " " + errorDate);
-   }
-
-   if ((appsignal.isActive===true) && (type == "error")){
-       logTracer.setError(errorMessage);
-   }
-
-   if (isConsoleLogActive===true) {
-       console.log(errorMessage + " " + errorDate);
-   }
-}
-*/
+module.exports = {copyObj, createLog, isValidURL};
