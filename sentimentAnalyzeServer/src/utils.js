@@ -1,6 +1,6 @@
 const { constructFilepath } = require("ibm-cloud-sdk-core");
 const { logWinston, isWinstonLogActive, logMorgan, isConsoleLogActive } = require("./logger");
-const { appsignal, logTracer } = require("./appsignal");
+const { appsignal, logTracer, isTracerActive } = require("./appsignal");
 
 function copyObj(obj) {
     var copy;
@@ -84,8 +84,14 @@ function createLog (logType, message, param, query, dateTime, error) {
      *  If AppSignal is on, all incidents will be logged automatically, except errors that must be 
      *  logged through tracer. Tracer is created at appsignal.js.
     */
-    if ((appsignal.isActive===true) && (logType == "error")){
+    if ((appsignal.isActive===true) && (logType == "error") && (isTracerActive()===true)){
+
+//        console.log("starting tracer...");
+        const currentSpan = logTracer.currentSpan();
+//        console.log(currentSpan, "**", message, errorMessage);
+//        currentSpan.setSampleData(message, [errorMessage]);
         logTracer.setError(error);
+//        console.log("finished tracer...");
     }
 
 }

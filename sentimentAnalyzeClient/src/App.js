@@ -4,6 +4,9 @@ import EmotionTable from './EmotionTable.js';
 import React from 'react';
 import isValidURL from './utils.js';
 
+import appsignal from './appsignalc.js' //LOGGING SYSTEM: APPSIGNAL
+import { ErrorBoundary } from '@appsignal/react'; //LOGGING SYSTEM: APPSIGNAL
+
 class App extends React.Component {
   /*
   We are setting the component as a state named innercomp.
@@ -58,11 +61,13 @@ class App extends React.Component {
         this.setState({sentimentOutput:output});
       }).catch ( (error) => {
         console.log("Erro interno", error);
+        appsignal.sendError(error);
         alert("Erro ao consultar serviço. Tente novamente.");
       })
     })
     .catch ((error) => {
       console.log("Erro Interno:", error);
+      appsignal.sendError(error);
       alert("Erro ao consultar serviço. Tente novamente.");
     })
   }
@@ -94,6 +99,8 @@ class App extends React.Component {
            this.setState({sentimentOutput:output});
         })
         .catch( (error) => {
+            appsignal.sendError(error);
+            console.log(error);
             alert("Erro ao consultar serviço. Tente novamente.");
         })
       });
@@ -118,6 +125,8 @@ class App extends React.Component {
          this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
        })
        .catch( (error) => {
+         appsignal.sendError(error);
+         console.log(error);
          alert("Erro ao consultar serviço. Tente novamente.");
        })
      });
@@ -125,7 +134,9 @@ class App extends React.Component {
   }
   
   render() {
-    return (  
+    return (
+      <ErrorBoundary            //**APPSIGNAL */
+       instance={appsignal}>    
       <div className="App">
       <button className={this.state.bttxtclass} onClick={()=>{this.renderOutput('text')}}>Text</button>
         <button className={this.state.bturlclass}  onClick={()=>{this.renderOutput('url')}}>URL</button>
@@ -139,6 +150,7 @@ class App extends React.Component {
         <br/><br/>
         {this.state.sentimentOutput}
       </div>
+    </ErrorBoundary> //**APPSIGNAL */
     );
     }
 }

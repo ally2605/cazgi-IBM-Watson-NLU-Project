@@ -28,9 +28,10 @@ console.log("***>>>", rootSpan);
 app.use(express.static('client'));
 app.use(cors_app());
 
-// LOGGING SYSTEM: only logs at console if Console logging is active
+// LOGGING SYSTEM: only logs at console if Console logging is active and for development environment
 if (isMorganLogActive === true) {
     if (node_env === "development") {
+       console.log("activating morgan...");
        app.use(logMorgan("dev"));
     }
 }

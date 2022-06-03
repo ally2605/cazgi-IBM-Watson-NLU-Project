@@ -7,4 +7,11 @@ function isValidURL (string) {
     return true;
 }
 
+function errorHandler () {
+
+}
+
+
+
+
 export default isValidURL;
