@@ -28,14 +28,11 @@ console.log("***>>>", rootSpan);
 app.use(express.static('client'));
 app.use(cors_app());
 
-// LOGGING SYSTEM: only logs at console if Console logging is active and for development environment
+// LOGGING SYSTEM: MORGAN - if any token were created at LOGGER.JS, include it here.
 if (isMorganLogActive === true) {
-    if (node_env === "development") {
-       console.log("activating morgan...");
-       app.use(logMorgan("dev"));
-    }
+    console.log("activating morgan combined mode...");
+    app.use(logMorgan('combined'));
 }
-
 
 /* IBM Watson Natural Language */
 function getNLUInstance() {
