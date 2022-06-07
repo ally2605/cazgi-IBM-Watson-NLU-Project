@@ -15,7 +15,7 @@ console.log("Is Console Log Active? ", isConsoleLogActive);
 const createError = require("http-errors"); // APPSIGNAL
 const logMorgan = require('morgan');
 
-/* MORGAN LOGGING - define TOKENS here if necessary. Include all tokes also in the Morgan Session at main server file. 
+/* MORGAN LOGGING - define TOKENS here if necessary. Include all tokes also in the Morgan Session at main server file (sentimentAnalyzeServer.js). 
 
 if (isMorganLogActive === true) {
     logMorgan.token();

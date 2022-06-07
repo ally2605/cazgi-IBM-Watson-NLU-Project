@@ -1,6 +1,6 @@
 console.log ("Starting server...");
 
-const { appsignal } = require("./src/appsignal"); // LOGGING: APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
+const { appSignal } = require("./src/appsignal"); // LOGGING: APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
 const express = require('express');
 const { expressMiddleware, expressErrorHandler } = require("@appsignal/express"); // LOGGING: APPSIGNAL - After require(express) but before any routes and the creation of app
 const { logWinston, logMorgan, isConsoleLogActive, isWinstonLogActive, isMorganLogActive } = require('./src/logger');
@@ -49,7 +49,7 @@ function getNLUInstance() {
     return naturalLanguageUnderstanding;
 }
 
-app.use(expressMiddleware(appsignal)); // LOGGING: APPSIGNAL - after everything but before any routes
+app.use(expressMiddleware(appSignal)); // LOGGING: APPSIGNAL - after everything but before any routes
 
 //**************** Routes */
 
@@ -178,7 +178,7 @@ app.get("/astro", (req, res) => {
 });
 
 // APPSIGNAL -- ADD THIS AFTER ANY OTHER EXPRESS MIDDLEWARE, AND AFTER ANY ROUTES!
-app.use(expressErrorHandler(appsignal));
+app.use(expressErrorHandler(appSignal));
 
 // start server
 let server = app.listen(8080, (err) => {
