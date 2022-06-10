@@ -52,33 +52,33 @@ function isValidURL (string) {
   To be implemented: ** internal error Code and correspondence with APIs returning codes?? 
                      ** debug, warning and trace modes
 */
-function createLog (logType, message, param, query, dateTime, error) {
+function createLog (logType, where, message, param, query, dateTime, error) {
 
-    let errorMessage = logType + ": " + dateTime;
-    if (message !== "") {
-        errorMessage += " " + message;
+    let logMessage = "[" + logType + "][" + where + "]" + "[" + dateTime + "]"; 
+    if ((message !=="") && (message !== undefined)) {
+        logMessage += " " + message;
     }
-    if (param !=="") {
-        errorMessage += " param: " + JSON.stringify(param);
+    if ((param !=="") && (param !== undefined)) {
+        logMessage += " param: " + JSON.stringify(param);
     }
-    if (query !==""){
-        errorMessage += " query:" + JSON.stringify(query) + " ";
+    if ((query !=="") && (query !== undefined)) {
+        logMessage += " query:" + JSON.stringify(query) + " ";
     }
-    errorMessage += error;
+    logMessage += error;
 
     /** Winston Logging: two modes implemented: error and info */
     if (isWinstonLogActive===true) {
         if (logType === "info") {
-           logWinston.info(errorMessage)
+           logWinston.info(logMessage);
         } else {
             if (logType === "error") {
-                logWinston.error(errorMessage);
+                logWinston.error(logMessage);
             }
         }
     }
     /** Console logging mode */
     if (isConsoleLogActive === true) {
-        console.log(errorMessage);
+        console.log(logMessage);
     }
     /** Appsignal logging mode
      *  If AppSignal is on, all incidents will be logged automatically, except errors that must be 

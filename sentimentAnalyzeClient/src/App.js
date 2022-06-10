@@ -2,11 +2,12 @@ import './bootstrap.min.css';
 import './App.css';
 import EmotionTable from './EmotionTable.js';
 import React from 'react';
-import isValidURL from './utils.js';
+import axios from 'axios';
 
-import appSignal from './appsignalc.js' //LOGGING SYSTEM: APPSIGNAL
+import { errorHandler, isValidURL }  from './utils.js';
+
+import { appSignal } from './appsignalc.js' //LOGGING SYSTEM: APPSIGNAL
 import { ErrorBoundary } from '@appsignal/react'; //LOGGING SYSTEM: APPSIGNAL
-
 class App extends React.Component {
   /*
   We are setting the component as a state named innercomp.
@@ -14,7 +15,7 @@ class App extends React.Component {
   value of the state, will be returned. The initial input mode
   is set to text
   */
-  state = {innercomp:<textarea rows="4" cols="50" id="textinput"/>,
+  state = {innercomp:<textarea rows="6" cols="50" id="textinput"/>,
            mode: "text",
            sentimentOutput:[],
            sentiment:true,
@@ -31,7 +32,7 @@ class App extends React.Component {
   cursorPointer = document.body.style.cursor;
 
   renderOutput = (input_mode)=>{
-    let rows = 1;
+    let rows = 2;
     let mode = "url";
     let btTxtClass = "btn btn-dark";
     let btUrlClass = "btn btn-info";
@@ -39,38 +40,35 @@ class App extends React.Component {
     //If the input mode is text make it 4 lines, changes the button color to set focus
     if(input_mode === "text"){
       mode = "text";
-      rows = 4;
+      rows = 6;
       btTxtClass = "btn btn-info";
       btUrlClass = "btn btn-dark";
     }
-      this.setState({innercomp:<textarea rows={rows} cols="50" id="textinput"/>,
+    this.setState({innercomp:<textarea rows={rows} cols="50" id="textinput"/>,
       mode: mode,
       sentimentOutput:[],
       sentiment:true,
       bttxtclass: btTxtClass,
-      bturlclass: btUrlClass
-      });
+      bturlclass: btUrlClass,
+      error: ""
+    });
   } 
   
   /** /ASTRO route to call Nasa API  */
   sendForAstro = () => {
     let url = "./astro";
-    fetch (url).then((response)=>{
-      response.json().then((data) => {
-        let output = <div style={{color: 'black', fontSize:20}}>There are currently {data.number} astronauts in space!</div>;
-        console.log(output);
-        this.setState({sentimentOutput:output});
-      }).catch ( (error) => {
-        console.log("Erro interno: ", error);
-        appSignal.sendError(error);
-        alert("Erro ao consultar serviço. Tente novamente.");
-      })
-    })
-    .catch ((error) => {
-      console.log("Erro Interno: ", error);
-      appSignal.sendError(error);
-      alert("Erro ao consultar serviço. Tente novamente.");
-    })
+    axios.get(url)
+    .then( (response) => {
+      let output = <div style={{color: 'black', fontSize:20}}>There are currently {response.data.number} astronauts in space!</div>;
+      console.log("ASTRO RETURN: ", response);
+      this.setState({sentimentOutput:output});
+    },
+    (error) => {
+      errorHandler(error, error.response.data.message, "API /astro");
+      console.log("MSG : ", error.response.data.message);
+      alert("Error: "+ error.response.data.message);
+    }
+    )
   }
 
   /** sets the route to /<text> OR <url>/sentiment to call watson NLU API*/
@@ -84,28 +82,29 @@ class App extends React.Component {
       alert("Invalid URL. Please inform a valid URL.");
     }  
     else {
-       url = url+"/" + mode + "/sentiment?"+ mode + "="+document.getElementById("textinput").value;
+      url += "/" + mode + "/sentiment?"+ mode + "="+document.getElementById("textinput").value;
 
-       fetch(url).then((response)=>{
-        response.json().then((data)=>{
-           this.setState({sentimentOutput:data.label});
-           let output = data.label;
-           let color = "white"
-           switch(output) {
-             case "positive": color = "green";break;
-             case "neutral": color = "yellow";break;
-             case "negative": color = "red";break;
-             default: color = "black";
-            }
-           output = <div style={{color:color,fontSize:20}}>{output}</div>
-           this.setState({sentimentOutput:output});
-        })
-        .catch( (error) => {
-            appSignal.sendError(error);
-            console.log("Erro interno: ", error);
-            alert("Erro ao consultar serviço. Tente novamente.");
-        })
-      });
+      axios.get(url)
+      .then((response) => {
+        console.log("SENTIMENT RETURN=",response);
+        this.setState({sentimentOutput:response.data.label});
+        let output = response.data.label;
+        let color = "white";
+        switch(output) {
+          case "positive": color = "green";break;
+          case "neutral": color = "yellow";break;
+          case "negative": color = "red";break;
+          default: color = "black";
+        }
+        output = <div style={{color:color,fontSize:20}}>{output}</div>;
+        this.setState({sentimentOutput:output});      
+      },
+      (error) => {
+        errorHandler(error, error.response.data.message, "API /" + mode + "/sentiment");
+        console.log("MSG : ", error.response.data.message);
+        alert("Error: "+ error.response.data.message);
+      }
+      );
     }
   }
 
@@ -121,28 +120,30 @@ class App extends React.Component {
       alert("Invalid URL. Please inform a valid URL.");
     }
     else {
-       url = url+"/" + mode + "/emotion?"+ mode + "="+document.getElementById("textinput").value;
+       url += "/" + mode + "/emotion?"+ mode + "="+document.getElementById("textinput").value;
 
-       fetch(url).then((response)=>{
-         response.json().then((data)=>{
-         this.setState({sentimentOutput:<EmotionTable emotions={data}/>});
-       })
-       .catch( (error) => {
-         appSignal.sendError(error);
-         console.log("Erro interno: ", error);
-         alert("Erro ao consultar serviço. Tente novamente.");
-       })
-     });
+       axios.get(url)
+       .then( (response) => {
+           console.log("EMOTION RETURN: ", response);
+           this.setState({sentimentOutput:<EmotionTable emotions={response.data}/>});
+       },
+       (error) => {
+           errorHandler(error, error.response.data.message, "API /" + mode + "/emotion");
+           console.log("MSG : ", error.response.data.message);
+           alert("Error: " + error.response.data.message);
+       }
+       )
     }
   }
-  
+ 
   /** renders app */
   render() {
     return (
       <ErrorBoundary            //**appSignal */
-       instance={appSignal}>    
+       instance={appSignal}>
+      <div id='popupContainer'></div>
       <div className="App">
-      <button className={this.state.bttxtclass} onClick={()=>{this.renderOutput('text')}}>Text</button>
+        <button className={this.state.bttxtclass} onClick={()=>{this.renderOutput('text')}}>Text</button>
         <button className={this.state.bturlclass}  onClick={()=>{this.renderOutput('url')}}>URL</button>
         <br/><br/>
         {this.state.innercomp}
@@ -160,3 +161,4 @@ class App extends React.Component {
 }
 
 export default App;
+

@@ -6,6 +6,7 @@ let appSignal_rootSpan = {};
 let isTracerActive = () => {};
 
 /** In Case APPSIGNAL is descontinued, start commenting HERE */
+const createError = require("http-errors"); // APPSIGNAL
 
 const dotenv = require('dotenv');
 dotenv.config();

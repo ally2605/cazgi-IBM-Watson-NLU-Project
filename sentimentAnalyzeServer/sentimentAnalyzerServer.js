@@ -1,4 +1,5 @@
-console.log ("Starting server...");
+const dayjs = require("dayjs");
+console.log("Starting server at " + dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"));
 
 const { appSignal } = require("./src/appsignal"); // LOGGING: APPSIGNAL - AT THE VERY TOP OF THE ENTRYPOINT OF APP
 const express = require('express');
@@ -62,7 +63,7 @@ app.get("/",(req,res)=>{
 app.get("/url/emotion", (req,res) => {
     let urlToAnalyze = req.query.url;
 
-   createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), "");
     const analyzeParams = 
         {
            "url": urlToAnalyze,
@@ -79,8 +80,10 @@ app.get("/url/emotion", (req,res) => {
            return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-            return res.sendStatus(500);
+            createLog("error", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), err);
+            let errorMessage = err.statusText + " " + JSON.parse(err.body).error;
+            return res.status(err.code).json({message: errorMessage});
+
         });
   });
 
@@ -88,7 +91,7 @@ app.get("/url/emotion", (req,res) => {
 app.get("/url/sentiment", (req,res) => {
     let urlToAnalyze = req.query.url;
 
-    createLog("info",req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info",req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), "");
     const analyzeParams = 
          {
             "url": urlToAnalyze,
@@ -105,15 +108,17 @@ app.get("/url/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-            return res.send("Could not do desired operation: " + err);  
+            createLog("error", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), err);
+            let errorMessage = err.statusText + " " + JSON.parse(err.body).error;
+            return res.status(err.code).json({message: errorMessage});
+
         });
 });
 
 //ROUTE: /text/emotion
 app.get("/text/emotion", (req,res) => {
     let textToAnalyze = req.query.text;    
-    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), "");
 
     const analyzeParams = 
          {
@@ -129,18 +134,21 @@ app.get("/text/emotion", (req,res) => {
     const naturalLanguageUnderstanding = getNLUInstance();
     naturalLanguageUnderstanding.analyze(analyzeParams)
         .then(analysisResults => {
+//            console.log("RETORNO DA API: ", analysisResults.result.keywords[0].emotion);
         return res.send(analysisResults.result.keywords[0].emotion,null,2);
         })
         .catch(err => {
-           createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-           return res.send("Could not do desired operation "+err);
+            createLog("error", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), err);
+            let errorMessage = err.statusText + " " + JSON.parse(err.body).error;
+            return res.status(err.code).json({message: errorMessage});
+
         });
 });
 
 // ROUTE: /text/sentiment 
 app.get("/text/sentiment", (req,res) => {
     let textToAnalyze = req.query.text;    
-    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), "");
     
     const analyzeParams = 
          {
@@ -159,8 +167,9 @@ app.get("/text/sentiment", (req,res) => {
         return res.send(analysisResults.result.keywords[0].sentiment,null,2);
         })
         .catch(err => {
-            createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-            return res.send("Could not do desired operation "+err);
+            createLog("error", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), err);
+            let errorMessage = err.statusText + " " + JSON.parse(err.body).error;
+            return res.status(err.code).json({message: errorMessage});
         });
 });
 
@@ -168,12 +177,14 @@ app.get("/text/sentiment", (req,res) => {
 app.get("/astro", (req, res) => {
    const result = axios.get(astro_api_url)
    .then(response => {
-    createLog("info", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), "");
+    createLog("info", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), "");
     return res.send(response.data);
    })
    .catch(err => {
-    createLog("error", req.method + " " + req.path, req.param, req.query, Date().toLocaleString().replace(",","").replace(/:.. /," "), err);
-    return res.sendStatus(500);
+    createLog("error", req.method + " " + req.path, "", req.param, req.query, dayjs(Date()).format("DD/MM/YYYY HH:mm:ss"), err);
+    let errorMessage = err.statusText + " " + JSON.parse(err.body).error;
+    return res.status(err.code).json({message: errorMessage});
+
    })
 });
 
@@ -188,4 +199,3 @@ let server = app.listen(8080, (err) => {
        console.log('Server is listening at port:', server.address().port);
     }
 });
-
